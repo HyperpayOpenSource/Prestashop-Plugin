@@ -19,8 +19,12 @@
         style: "{$cardStyle}",
         locale: "{$locale}",
         paymentTarget: "_top",
+        registrations: {
+            requireCvv: true,
+            hideInitialPaymentForms: true
+        },
         onReady: function() {
-    var createRegistrationHtml = '<div class="customLabel">Store payment details?</div><div class="customInput"><input type="checkbox" name="createRegistration" value="true" /></div>';
+    var createRegistrationHtml = '<div class="customLabel">{l s='Store payment details?' }</div><div class="customInput"><input type="checkbox" name="createRegistration" value="true" /></div>';
     $('form.wpwl-form-card').find('.wpwl-button').before(createRegistrationHtml);
     $('.wpwl-control-brand').hide();
     $('.wpwl-label-brand').hide();
@@ -33,6 +37,10 @@
 
     <style>
     {$cardCss nofilter}
+
+    .wpwl-control-cardNumber,.wpwl-control-cvv{
+        direction:ltr!important;
+    }
 
     .js-payment-hyperpay.disabled form {
         display: none;
