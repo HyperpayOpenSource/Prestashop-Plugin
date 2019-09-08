@@ -1,0 +1,1 @@
+this folder content is moved to themes/[theme-name]/modules/hyperpay/translations
