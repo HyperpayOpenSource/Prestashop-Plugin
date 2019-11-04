@@ -44,7 +44,7 @@ define('PAYMENT_CONNECTORS', [
     'query' => [
         [
             'value' => 'migs',
-            'label' => 'MIGS'
+            'label' => 'MIGS / MPGS'
         ],
         [
             'value' => 'visaacp',
@@ -82,14 +82,8 @@ define('CONFIG', [
     ],
     'HYPERPAY_TEST_URL' => 'https://test.oppwa.com/v1/',
     'HYPERPAY_LIVE_URL' => 'https://oppwa.com/v1/',
-    'HYPERPAY_USER_ID' => [
-        'required' => false,
-    ],
-    'HYPERPAY_PASSWORD' => [
-        'required' => false,
-    ],
     'HYPERPAY_ACCESS_TOKEN' => [
-        'required' => false,
+        'required' => true,
     ],
     'HYPERPAY_RISK_CHANNEL_ID' => [
         'required' => false,

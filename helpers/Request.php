@@ -19,14 +19,6 @@ class Request
         }
         $url = "{$url}checkouts/$id/payment?entityId=$entityID";
 
-        // Add authentication
-        $username = Configuration::get("HYPERPAY_USER_ID");
-        $password = Configuration::get("HYPERPAY_PASSWORD");
-        if ($username != '' && $password != '') {
-            $url .= "&authentication.userId=" . $username .
-                "&authentication.password=" . $password;
-        }
-
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
 
@@ -93,15 +85,6 @@ class Request
 
         $data .= Request::getRequestAdditionalInfo($settingsKey);
 
-        // Add authentication
-        $username = Configuration::get("HYPERPAY_USER_ID");
-        $password = Configuration::get("HYPERPAY_PASSWORD");
-        if ($username != '' && $password != '') {
-            $data .= "&authentication.userId=" . $username .
-                "&authentication.password=" . $password;
-        }
-
-
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
 
@@ -133,13 +116,13 @@ class Request
 
         $data = '';
 
-        $firstNameShipping = str_replace("&", "", $shippingAddress->firstname);
-        $surNameShipping = str_replace("&", "", $shippingAddress->lastname);
+        $firstNameShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->firstname));
+        $surNameShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->lastname));
         $countryShipping = (new Country($shippingAddress->id_country))->iso_code;
-        $telShipping = $shippingAddress->phone ?: $shippingAddress->phone_mobile;
-        $postCodeShipping = $shippingAddress->postcode;
-        $streetShipping = str_replace("&", "", $shippingAddress->address1);
-        $cityShipping = str_replace("&", "", $shippingAddress->city);
+        $telShipping = preg_replace('/\s/', '', $shippingAddress->phone ?: $shippingAddress->phone_mobile);
+        $postCodeShipping = preg_replace('/\s/', '', $shippingAddress->postcode);
+        $streetShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->address1));
+        $cityShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->city));
 
         if (!($connector == 'migs' && HPHelper::isThisEnglishText($cityShipping) == false)) {
             $data .= "&shipping.city=" . $cityShipping;
@@ -169,13 +152,13 @@ class Request
         }
 
 
-        $firstNameBilling = str_replace("&", "", $billingAddress->firstname);
-        $surNameBilling = str_replace("&", "", $billingAddress->lastname);
+        $firstNameBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->firstname));
+        $surNameBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->lastname));
         $countryBilling = (new Country($billingAddress->id_country))->iso_code;
-        $telBilling = $billingAddress->phone ?: $billingAddress->phone_mobile;
-        $postCodeBilling = $billingAddress->postcode;
-        $streetBilling = str_replace("&", "", $billingAddress->address1);
-        $cityBilling = str_replace("&", "", $billingAddress->city);
+        $telBilling = preg_replace('/\s/', '', $billingAddress->phone ?: $billingAddress->phone_mobile);
+        $postCodeBilling = preg_replace('/\s/', '', $billingAddress->postcode);
+        $streetBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->address1));
+        $cityBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->city));
 
 
         if (!($connector == 'migs' && HPHelper::isThisEnglishText($cityBilling) == false)) {
@@ -244,15 +227,6 @@ class Request
             "&currency=$currency" .
             "&paymentType=$operation" .
             "&testMode=$testMode";
-
-        // Add authentication
-        $username = Configuration::get("HYPERPAY_USER_ID");
-        $password = Configuration::get("HYPERPAY_PASSWORD");
-        if ($username != '' && $password != '') {
-            $data .= "&authentication.userId=" . $username .
-                "&authentication.password=" . $password;
-        }
-
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
