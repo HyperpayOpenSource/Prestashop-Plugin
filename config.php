@@ -44,7 +44,7 @@ define('PAYMENT_CONNECTORS', [
     'query' => [
         [
             'value' => 'migs',
-            'label' => 'MIGS'
+            'label' => 'MIGS / MPGS'
         ],
         [
             'value' => 'visaacp',
