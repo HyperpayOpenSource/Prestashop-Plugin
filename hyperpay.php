@@ -62,8 +62,8 @@ class Hyperpay extends PaymentModuleCore
         if (Tools::isSubmit('submit' . $this->name)) {
 
             // Special check for user id and access token
-            if ((empty(Tools::getValue('HYPERPAY_USER_ID')) || empty(Tools::getValue('HYPERPAY_PASSWORD'))) && empty(Tools::getValue('HYPERPAY_ACCESS_TOKEN'))) {
-                $output .= $this->displayError($this->l('The user id and password should be filled if not fill the access token'));
+            if (empty(Tools::getValue('HYPERPAY_ACCESS_TOKEN'))) {
+                $output .= $this->displayError($this->l('The the access token should be filled'));
                 return $output;
             }
 

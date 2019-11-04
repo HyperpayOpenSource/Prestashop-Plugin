@@ -19,14 +19,6 @@ class Request
         }
         $url = "{$url}checkouts/$id/payment?entityId=$entityID";
 
-        // Add authentication
-        $username = Configuration::get("HYPERPAY_USER_ID");
-        $password = Configuration::get("HYPERPAY_PASSWORD");
-        if ($username != '' && $password != '') {
-            $url .= "&authentication.userId=" . $username .
-                "&authentication.password=" . $password;
-        }
-
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
 
@@ -92,15 +84,6 @@ class Request
         }
 
         $data .= Request::getRequestAdditionalInfo($settingsKey);
-
-        // Add authentication
-        $username = Configuration::get("HYPERPAY_USER_ID");
-        $password = Configuration::get("HYPERPAY_PASSWORD");
-        if ($username != '' && $password != '') {
-            $data .= "&authentication.userId=" . $username .
-                "&authentication.password=" . $password;
-        }
-
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -244,15 +227,6 @@ class Request
             "&currency=$currency" .
             "&paymentType=$operation" .
             "&testMode=$testMode";
-
-        // Add authentication
-        $username = Configuration::get("HYPERPAY_USER_ID");
-        $password = Configuration::get("HYPERPAY_PASSWORD");
-        if ($username != '' && $password != '') {
-            $data .= "&authentication.userId=" . $username .
-                "&authentication.password=" . $password;
-        }
-
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
