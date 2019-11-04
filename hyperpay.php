@@ -19,7 +19,7 @@ class Hyperpay extends PaymentModuleCore
     {
         $this->name = 'hyperpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '2.0.0';
         $this->author = 'Hyperpay';
         $this->need_instance = 0;
 
