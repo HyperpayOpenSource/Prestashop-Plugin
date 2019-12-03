@@ -13,13 +13,13 @@ include_once(_PS_MODULE_DIR_ . 'hyperpay/helpers/Request.php');
 
 include_once 'config.php';
 
-class Hyperpay extends PaymentModuleCore
+class Hyperpay extends PaymentModule
 {
     public function __construct()
     {
         $this->name = 'hyperpay';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.0';
+        $this->version = '2.0.1';
         $this->author = 'Hyperpay';
         $this->need_instance = 0;
 
