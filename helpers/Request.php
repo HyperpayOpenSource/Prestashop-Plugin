@@ -65,6 +65,11 @@ class Request
             "&paymentType=$paymentType" .
             "&merchantTransactionId=$merchantTransactionId";
 
+        $data .= '&customParameters[branch_id]=1';
+        $data .= '&customParameters[teller_id]=1';
+        $data .= '&customParameters[device_id]=1';
+        $data .= '&customParameters[bill_number]=' . $merchantTransactionId;
+
         if ($testMode != "LIVE") {
             $data .= "&testMode=$testMode";
         }
@@ -225,8 +230,11 @@ class Request
         $data = "entityId=$entityID" .
             "&amount=$amount" .
             "&currency=$currency" .
-            "&paymentType=$operation" .
-            "&testMode=$testMode";
+            "&paymentType=$operation";
+
+        if ($testMode != "LIVE") {
+            $data .= "&testMode=$testMode";
+        }
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);

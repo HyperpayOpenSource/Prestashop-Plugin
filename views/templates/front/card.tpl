@@ -19,8 +19,18 @@
     $('form.wpwl-form-card').find('.wpwl-button').before(createRegistrationHtml);
     $('.wpwl-control-brand').hide();
     $('.wpwl-label-brand').hide();
+
+    $('.wpwl-form-virtualAccount-STC_PAY .wpwl-wrapper-radio-qrcode').hide();
+    $('.wpwl-form-virtualAccount-STC_PAY .wpwl-wrapper-radio-mobile').hide();
+    $('.wpwl-form-virtualAccount-STC_PAY .wpwl-group-paymentMode').hide();
+    $('.wpwl-form-virtualAccount-STC_PAY .wpwl-wrapper-radio-mobile .wpwl-control-radio-mobile').attr('checked',true);
+    $('.wpwl-form-virtualAccount-STC_PAY .wpwl-wrapper-radio-mobile .wpwl-control-radio-mobile').trigger('click');
   }
     }
+    wpwlOptions.applePay = {
+    merchantCapabilities: ["supports3DS"],
+    supportedNetworks: ["amex", "masterCard", "visa", "mada"]
+}
     </script>
     <script src="{$originUrl}paymentWidgets.js?checkoutId={$checkoutId}"></script>
 

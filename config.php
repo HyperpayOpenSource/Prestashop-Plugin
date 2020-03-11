@@ -7,6 +7,8 @@ define(
         'PAYPAL' => 'PAYPAL',
         'AMEX' => 'AMEX',
         'MADA' => 'MADA',
+        'STC_PAY' => 'STC_PAY',
+        'APPLEPAY' => 'APPLEPAY',
         'AUTODETECT' => 'VISA MASTER AMEX',
     ]
 );
@@ -248,6 +250,50 @@ define('CONFIG', [
             ],
             'HYPERPAY_METHOD_MADA_ENTITY_ID' => '',
             'HYPERPAY_METHOD_MADA_CURRENCY' =>  [
+                'type' => 'currency'
+            ],
+        ],
+        'STC_PAY' => [
+            'HYPERPAY_METHOD_STC_PAY_NAME' => 'STCPay',
+            'HYPERPAY_METHOD_STC_PAY_TITLE' => 'HyperPay STCPay',
+            'HYPERPAY_METHOD_STC_PAY_ENABLED' => [
+                'type' => 'switch',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_STC_PAY_ACTION' =>  [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_ACTIONS,
+            ],
+            'HYPERPAY_METHOD_STC_PAY_CONNECTOR' => [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_CONNECTORS,
+            ],
+            'HYPERPAY_METHOD_STC_PAY_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_STC_PAY_CURRENCY' =>  [
+                'type' => 'currency'
+            ],
+        ],
+        'APPLEPAY' => [
+            'HYPERPAY_METHOD_APPLEPAY_NAME' => 'Apple Pay',
+            'HYPERPAY_METHOD_APPLEPAY_TITLE' => 'HyperPay Apple Pay',
+            'HYPERPAY_METHOD_APPLEPAY_ENABLED' => [
+                'type' => 'switch',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_APPLEPAY_ACTION' =>  [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_ACTIONS,
+            ],
+            'HYPERPAY_METHOD_APPLEPAY_CONNECTOR' => [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_CONNECTORS,
+            ],
+            'HYPERPAY_METHOD_APPLEPAY_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_APPLEPAY_CURRENCY' =>  [
                 'type' => 'currency'
             ],
         ],
