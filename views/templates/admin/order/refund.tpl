@@ -9,6 +9,9 @@
                 {l s='Refund by Hyperpay' mod='hyperpay'}
             </button>
     </form>
+    {if $message }
+        <p class="alert alert-success">{$message|escape:'htmlall':'UTF-8'}</p>
+    {/if}
     {foreach from=$errors_refund item=error}
         <p class="alert alert-danger">{$error|escape:'htmlall':'UTF-8'}</p>
     {/foreach}

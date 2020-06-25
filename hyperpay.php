@@ -382,7 +382,7 @@ class Hyperpay extends PaymentModule
 
     public function hookDisplayAdminOrderContentOrder($params)
     {
-        return $this->hookDisplayBackOfficeOrderActions(['id_order' =>  $params['order']->id]);
+        return $this->backofficeOperations(['id_order' =>  $params['order']->id]);
     }
 
     /**
@@ -392,7 +392,7 @@ class Hyperpay extends PaymentModule
      *
      * @return void
      */
-    public function hookDisplayBackOfficeOrderActions($params)
+    public function backofficeOperations($params)
     {
         $hyperpay_payment = HyperpayPayment::loadByOrderId($params['id_order']);
 
@@ -452,6 +452,7 @@ class Hyperpay extends PaymentModule
 
                 if (!$refund_response['success']) {
                     $errors_refund[] = $refund_response['description'];
+                    Logger::addLog(json_encode(['payment' => $hyperpay_payment, 'amount' => $refundAmount]));
                 } else {
                     $orderMessage->message = $refund_response['description'];
                 }
@@ -468,6 +469,7 @@ class Hyperpay extends PaymentModule
             [
                 'params'                   => $params,
                 'errors_refund'            => $errors_refund,
+                'message' => $orderMessage->message,
             ]
         );
 
@@ -479,6 +481,7 @@ class Hyperpay extends PaymentModule
             $this->context->smarty->assign(
                 [
                     'errors_capture'           => $errors_capture,
+                    'message' => $orderMessage->message,
                 ]
             );
             if (count($params) == 1) {
