@@ -1,19 +1,17 @@
 <?php
-define(
-    'PAYMENT_BRANDS',
-    [
-        'VISA' => 'VISA',
-        'MASTER' => 'MASTER',
-        'PAYPAL' => 'PAYPAL',
-        'AMEX' => 'AMEX',
-        'MADA' => 'MADA',
-        'STC_PAY' => 'STC_PAY',
-        'APPLEPAY' => 'APPLEPAY',
-        'AUTODETECT' => 'VISA MASTER AMEX',
-    ]
-);
+const PAYMENT_BRANDS =
+[
+    'VISA' => 'VISA',
+    'MASTER' => 'MASTER',
+    'PAYPAL' => 'PAYPAL',
+    'AMEX' => 'AMEX',
+    'MADA' => 'MADA',
+    'STC_PAY' => 'STC_PAY',
+    'APPLEPAY' => 'APPLEPAY',
+    'AUTODETECT' => 'VISA MASTER AMEX',
+];
 
-define('PAYMENT_ACTIONS', [
+const PAYMENT_ACTIONS =  [
     'id' => 'value', // key that have the value in query array
     'name' => 'label', // key that have the label in query arrays
     'query' => [
@@ -26,9 +24,9 @@ define('PAYMENT_ACTIONS', [
             'label' => 'Pre-Authorization'
         ]
     ]
-]);
+];
 
-define('YES_NO_OPTIONS', [
+const YES_NO_OPTIONS = [
     [
         'value' => 1,
         'label' => 'Yes'
@@ -37,10 +35,10 @@ define('YES_NO_OPTIONS', [
         'value' => 0,
         'label' => 'No'
     ]
-]);
+];
 
 
-define('PAYMENT_CONNECTORS', [
+const PAYMENT_CONNECTORS = [
     'id' => 'value', // key that have the value in query array
     'name' => 'label', // key that have the label in query array
     'query' => [
@@ -53,9 +51,9 @@ define('PAYMENT_CONNECTORS', [
             'label' => 'VISA ACP'
         ]
     ]
-]);
+];
 
-define('CONFIG', [
+const CONFIG = [
     'HYPERPAY_MODE' => [
         'type' => 'select',
         'size' => 0,
@@ -299,4 +297,4 @@ define('CONFIG', [
         ],
     ]
 
-]);
+];
