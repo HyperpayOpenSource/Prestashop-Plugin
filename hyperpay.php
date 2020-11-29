@@ -90,7 +90,7 @@ class Hyperpay extends PaymentModule
                                 if (!empty($formValue)) {
                                     Configuration::updateValue($paymentConfigKey, $formValue);
                                 } else {
-                                    $message = $payment . ' ' . (isset($paymentConfigValue['label'])  ? $paymentConfigValue['label'] : Tools::ucfirst(Tools::strtolower(explode('_', $paymentConfigKey)[3]))) . ' is required';
+                                    $message = $payment . ' ' . (isset($paymentConfigValue['label']) ? $paymentConfigValue['label'] : Tools::ucfirst(Tools::strtolower(explode('_', $paymentConfigKey)[3]))) . ' is required';
                                     $output .= $this->displayError($this->l($message));
                                 }
                             } else {
@@ -170,7 +170,7 @@ class Hyperpay extends PaymentModule
     {
 
         // Get default language
-        $defaultLang = (int) Configuration::get('PS_LANG_DEFAULT');
+        $defaultLang = (int)Configuration::get('PS_LANG_DEFAULT');
 
         $helper = new HelperForm();
 
@@ -196,9 +196,9 @@ class Hyperpay extends PaymentModule
                         if (is_string($paymentConfigValue)) {
                             $field = [
                                 'type' => 'text',
-                                'label' =>  Tools::ucfirst(Tools::strtolower(explode('_', $paymentConfigKey)[3])),
+                                'label' => Tools::ucfirst(Tools::strtolower(explode('_', $paymentConfigKey)[3])),
                                 'name' => $paymentConfigKey,
-                                'size' =>  20,
+                                'size' => 20,
                                 'required' => false,
                             ];
                         } else {
@@ -227,9 +227,9 @@ class Hyperpay extends PaymentModule
                 if (is_string($value)) {
                     $field = [
                         'type' => 'text',
-                        'label' =>  Tools::ucfirst(Tools::strtolower(explode('_', $key)[1])),
+                        'label' => Tools::ucfirst(Tools::strtolower(explode('_', $key)[1])),
                         'name' => $key,
-                        'size' =>  20,
+                        'size' => 20,
                         'required' => true,
                     ];
                 } else {
@@ -257,7 +257,6 @@ class Hyperpay extends PaymentModule
                 ]
             ]
         ];
-
 
 
         // Module, token and currentIndex
@@ -292,7 +291,7 @@ class Hyperpay extends PaymentModule
 
     public function createOrderThread($id_order)
     {
-        // Create new thred in the order 
+        // Create new thred in the order
         $orderThread = new CustomerThread();
         $orderThread->id_shop = $this->context->shop->id;
         $orderThread->id_lang = $this->context->language->id;
@@ -303,7 +302,7 @@ class Hyperpay extends PaymentModule
         $orderThread->email = $this->context->customer->email;
         $orderThread->token = Tools::passwdGen(12);
         $orderThread->add();
-        return (int) $orderThread->id;
+        return (int)$orderThread->id;
     }
 
     private function refund($amount, HyperpayPayment $order)
@@ -329,7 +328,7 @@ class Hyperpay extends PaymentModule
 
         $refund = new HyperpayRefund();
         $refund->id_order = $order->id_order;
-        $refund->refund_id =  isset($paymentStatus['id']) ? $paymentStatus['id'] : '';
+        $refund->refund_id = isset($paymentStatus['id']) ? $paymentStatus['id'] : '';
         $refund->refund_amount = isset($paymentStatus['amount']) ? $paymentStatus['amount'] : -1;
         $refund->payment_method = $order->payment_method;
         $refund->result = $status;
@@ -382,7 +381,7 @@ class Hyperpay extends PaymentModule
 
     public function hookDisplayAdminOrderContentOrder($params)
     {
-        return $this->backofficeOperations(['id_order' =>  $params['order']->id]);
+        return $this->backofficeOperations(['id_order' => $params['order']->id]);
     }
 
     /**
@@ -402,7 +401,7 @@ class Hyperpay extends PaymentModule
 
         $errors_capture = [];
         $errors_refund = [];
-        $html   = '';
+        $html = '';
 
 
         if (Tools::isSubmit('submitHyperpayCapture')) {
@@ -411,7 +410,7 @@ class Hyperpay extends PaymentModule
             if ($hyperpay_payment->payment_status == 'captured') {
                 $errors_capture[] = 'The payment already been captured';
             } else {
-                // Create new message to log and inform the customer 
+                // Create new message to log and inform the customer
                 $orderMessage = new CustomerMessage();
                 $orderMessage->id_customer_thread = $this->createOrderThread($params['id_order']);
                 $orderMessage->private = 1;
@@ -439,7 +438,7 @@ class Hyperpay extends PaymentModule
             // REFUND
             $refundAmount = Tools::getValue('refundAmount');
             if (Validate::isPrice($refundAmount)) {
-                // Create new message to log and inform the customer 
+                // Create new message to log and inform the customer
                 $orderMessage = new CustomerMessage();
                 $orderMessage->id_customer_thread = $this->createOrderThread($params['id_order']);
                 $orderMessage->private = 1;
@@ -467,8 +466,8 @@ class Hyperpay extends PaymentModule
 
         $this->context->smarty->assign(
             [
-                'params'                   => $params,
-                'errors_refund'            => $errors_refund,
+                'params' => $params,
+                'errors_refund' => $errors_refund,
                 'message' => $orderMessage->message,
             ]
         );
@@ -480,7 +479,7 @@ class Hyperpay extends PaymentModule
         if ($hyperpay_payment->payment_type == "PA") {
             $this->context->smarty->assign(
                 [
-                    'errors_capture'           => $errors_capture,
+                    'errors_capture' => $errors_capture,
                     'message' => $orderMessage->message,
                 ]
             );
@@ -523,9 +522,12 @@ class Hyperpay extends PaymentModule
                         ],
                         true
                     );
-
-
-                $paymentOptions[] = $cardPaymentOption;
+                if ($payment == 'MADA') {
+                    // insert mada at the top of array
+                    array_unshift($paymentOptions, $cardPaymentOption);
+                } else {
+                    $paymentOptions[] = $cardPaymentOption;
+                }
             }
         }
 
@@ -638,7 +640,6 @@ class Hyperpay extends PaymentModule
         }
         return true;
     }
-
 
 
     /**
@@ -761,7 +762,7 @@ class Hyperpay extends PaymentModule
               `id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
               `id_order` INT(11),
               `id_cart` INT(11),
-              
+
               `payment_id` varchar(255) NOT NULL,
               `payment_type` varchar(255) NOT NULL,
               `amount` varchar(255) NOT NULL,
@@ -802,7 +803,7 @@ class Hyperpay extends PaymentModule
             `id` INT(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
             `id_customer` INT(11),
             `payment_method` varchar(255),
-            
+
             `registration_id` varchar(255) NOT NULL,
 
             `bin` varchar(255)  NULL,
