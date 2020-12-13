@@ -512,7 +512,7 @@ class Hyperpay extends PaymentModule
             if (Configuration::get("{$settingsKey}_ENABLED")) {
                 $cardPaymentOption = [];
                 $cardPaymentOption['title'] = $this->l(Configuration::get("{$settingsKey}_TITLE"));
-                $cardPaymentOption['logo'] = _PS_BASE_URL_ . _MODULE_DIR_ . "hyperpay/views/imgs/payments_logos/$payment.svg";
+                $cardPaymentOption['logo'] = _PS_BASE_URL_ . _MODULE_DIR_ . "hyperpay/views/imgs/payments_logos/smaller-$payment.svg";
                 $cardPaymentOption['link'] =
                     $this->context->link->getModuleLink(
                         $this->name,
@@ -561,9 +561,17 @@ class Hyperpay extends PaymentModule
                     )
                     ->setModuleName($this->name);
 
-                $paymentOptions[] = $cardPaymentOption;
+                    if ($payment == 'MADA') {
+                        // insert mada at the top of array and add it's logo
+                        array_unshift($paymentOptions, $cardPaymentOption);
+                        $cardPaymentOption->setLogo(Media::getMediaPath(_PS_BASE_URL_ . _MODULE_DIR_ . "hyperpay/views/imgs/payments_logos/smaller-$payment.svg"));
+
+                    } else {
+                        $paymentOptions[] = $cardPaymentOption;
+                    }
             }
         }
+
 
         return $paymentOptions;
     }
