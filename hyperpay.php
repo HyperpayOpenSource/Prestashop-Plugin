@@ -286,7 +286,16 @@ class Hyperpay extends PaymentModule
             ]
         ];
 
-        return $helper->generateForm($fieldsForm);
+        return $helper->generateForm($fieldsForm). '
+        <script type="text/javascript">
+            jQuery(function ($) {
+              var lang = "<?php echo $lang; ?>";
+              var title = ( lang === "ar" ? "بطاقة مدى البنكية" :"mada card");
+              $("#HYPERPAY_METHOD_MADA_TITLE").val(title);
+              $("#HYPERPAY_METHOD_MADA_TITLE").attr("readonly","true");
+            });
+       </script>'
+                ;
     }
 
     public function createOrderThread($id_order)
