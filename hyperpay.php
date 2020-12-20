@@ -290,7 +290,7 @@ class Hyperpay extends PaymentModule
         <script type="text/javascript">
             jQuery(function ($) {
               var lang = "<?php echo $lang; ?>";
-              var title = ( lang === "ar" ? "بطاقة مدى البنكية" :"mada card");
+              var title = ( lang === "ar" ? "بطاقة مدى البنكية" :"mada debit card");
               $("#HYPERPAY_METHOD_MADA_TITLE").val(title);
               $("#HYPERPAY_METHOD_MADA_TITLE").attr("readonly","true");
             });
