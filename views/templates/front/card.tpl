@@ -100,5 +100,17 @@
         top:0px;
     }
     </style>
+
+    {if $locale eq 'ar'}
+    <style>
+    .wpwl-brand-MADA{
+        right:unset !important;
+        left:8px !important;
+    }
+    .wpwl-control-cardNumber,.wpwl-control-cvv{
+        direction:rtl!important;
+    }
+    </style>
+    {/if}
 </section>
 {/block}
