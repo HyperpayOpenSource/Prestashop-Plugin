@@ -286,16 +286,7 @@ class Hyperpay extends PaymentModule
             ]
         ];
 
-        return $helper->generateForm($fieldsForm). '
-        <script type="text/javascript">
-            jQuery(function ($) {
-              var lang = "<?php echo $lang; ?>";
-              var title = ( lang === "ar" ? "بطاقة مدى البنكية" :"mada debit card");
-              $("#HYPERPAY_METHOD_MADA_TITLE").val(title);
-              $("#HYPERPAY_METHOD_MADA_TITLE").attr("readonly","true");
-            });
-       </script>'
-                ;
+        return $helper->generateForm($fieldsForm);
     }
 
     public function createOrderThread($id_order)
@@ -574,7 +565,11 @@ class Hyperpay extends PaymentModule
                         // insert mada at the top of array and add it's logo
                         array_unshift($paymentOptions, $cardPaymentOption);
                         $cardPaymentOption->setLogo(Media::getMediaPath(_PS_BASE_URL_ . _MODULE_DIR_ . "hyperpay/views/imgs/payments_logos/smaller-$payment.svg"));
-
+                        if ($this->context->language->iso_code == 'ar') {
+                          $cardPaymentOption->setCallToActionText('بطاقة مدى البنكية');
+                        }else{
+                          $cardPaymentOption->setCallToActionText('mada debit card');
+                        }
                     } else {
                         $paymentOptions[] = $cardPaymentOption;
                     }
