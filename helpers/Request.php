@@ -33,10 +33,10 @@ class Request
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $responseData = curl_exec($ch);
         if (curl_errno($ch)) {
-            $responseData =  '"' . curl_error($ch) . '"';
+            $responseData = '"' . curl_error($ch) . '"';
         }
         curl_close($ch);
-        return  $responseData;
+        return $responseData;
     }
 
     public static function prepareCheckout($settingsKey, $paymentMethod)
@@ -106,7 +106,7 @@ class Request
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $responseData = curl_exec($ch);
         if (curl_errno($ch)) {
-            $responseData =  '"' . curl_error($ch) . '"';
+            $responseData = '"' . curl_error($ch) . '"';
         }
         curl_close($ch);
         return $responseData;
@@ -116,6 +116,7 @@ class Request
     {
         $billingAddress = new Address(Context::getContext()->cart->id_address_invoice);
         $shippingAddress = new Address(Context::getContext()->cart->id_address_delivery);
+        $customer = Context::getContext()->customer;
 
         $connector = Configuration::get("{$settingsKey}_CONNECTOR");
 
@@ -128,6 +129,11 @@ class Request
         $postCodeShipping = preg_replace('/\s/', '', $shippingAddress->postcode);
         $streetShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->address1));
         $cityShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->city));
+        $stateBilling = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->city));
+
+        if (!($connector == 'migs' && HPHelper::isThisEnglishText($stateBilling) == false)) {
+            $data .= "&billing.state=" . $stateBilling;
+        }
 
         if (!($connector == 'migs' && HPHelper::isThisEnglishText($cityShipping) == false)) {
             $data .= "&shipping.city=" . $cityShipping;
@@ -164,7 +170,11 @@ class Request
         $postCodeBilling = preg_replace('/\s/', '', $billingAddress->postcode);
         $streetBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->address1));
         $cityBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->city));
+        $stateBilling = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->city));
 
+        if (!($connector == 'migs' && HPHelper::isThisEnglishText($stateBilling) == false)) {
+            $data .= "&billing.state=" . $stateBilling;
+        }
 
         if (!($connector == 'migs' && HPHelper::isThisEnglishText($cityBilling) == false)) {
             $data .= "&billing.city=" . $cityBilling;
@@ -193,6 +203,13 @@ class Request
         if (!($connector == 'migs' && HPHelper::isThisEnglishText($streetBilling) == false)) {
             $data .= "&billing.street1=" . $streetShipping;
             $data .= "&billing.street2=" . $streetShipping;
+        }
+
+        if (isset($customer)) {
+            $customerEmail = preg_replace('/\s/', '', str_replace("&", "", $customer->email));
+            $data .= "&customer.email=" . $customerEmail;
+        } else {
+            $data .= "customer.email=''";
         }
 
         return $data;
@@ -252,7 +269,7 @@ class Request
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $responseData = curl_exec($ch);
         if (curl_errno($ch)) {
-            $responseData =  '"' . curl_error($ch) . '"';
+            $responseData = '"' . curl_error($ch) . '"';
         }
         curl_close($ch);
         return $responseData;
