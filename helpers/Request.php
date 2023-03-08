@@ -69,6 +69,7 @@ class Request
         $data .= '&customParameters[teller_id]=1';
         $data .= '&customParameters[device_id]=1';
         $data .= '&customParameters[bill_number]=' . $merchantTransactionId;
+        $data .= '$customParameters[plugin]=prestashop';
 
         if ($testMode != "LIVE") {
             $data .= "&testMode=$testMode";
