@@ -8,7 +8,8 @@ const PAYMENT_BRANDS =
     'MADA' => 'MADA',
     'STC_PAY' => 'STC_PAY',
     'APPLEPAY' => 'APPLEPAY',
-    'AUTODETECT' => 'VISA MASTER AMEX',
+    'AUTODETECT' => 'VISA MASTER AMEX JCB',
+    'JCB' => 'JCB',
 ];
 
 const PAYMENT_ACTIONS =  [
@@ -160,6 +161,28 @@ const CONFIG = [
             ],
             'HYPERPAY_METHOD_VISA_ENTITY_ID' => '',
             'HYPERPAY_METHOD_VISA_CURRENCY' => [
+                'type' => 'currency',
+            ],
+        ],
+        'JCB' => [
+            'HYPERPAY_METHOD_JCB_NAME' => 'JCB',
+            'HYPERPAY_METHOD_JCB_TITLE' => 'HyperPay JCB',
+            'HYPERPAY_METHOD_JCB_ENABLED' => [
+                'type' => 'switch',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_JCB_ACTION' =>  [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_ACTIONS,
+            ],
+            'HYPERPAY_METHOD_JCB_CONNECTOR' => [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_CONNECTORS,
+            ],
+            'HYPERPAY_METHOD_JCB_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_JCB_CURRENCY' => [
                 'type' => 'currency',
             ],
         ],

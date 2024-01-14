@@ -44,6 +44,9 @@
             requireCvv: true,
             hideInitialPaymentForms: true
         },
+        browser: {
+            threeDChallengeWindow: 5
+        },
         onReady: function() {
             if(paymentMethod === 'MADA') {
                 $('.wpwl-wrapper-cardNumber').each(function () {
