@@ -196,7 +196,7 @@ class Hyperpay extends PaymentModule
                         if (is_string($paymentConfigValue)) {
                             $field = [
                                 'type' => 'text',
-                                'label' => Tools::ucfirst(Tools::strtolower(explode('_', $paymentConfigKey)[3])),
+                                'label' => Tools::ucfirst(Tools::strtolower(str_replace("_", " " , str_replace("HYPERPAY_METHOD_", "" , $paymentConfigKey)))),
                                 'name' => $paymentConfigKey,
                                 'size' => 20,
                                 'required' => false,

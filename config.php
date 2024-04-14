@@ -10,6 +10,7 @@ const PAYMENT_BRANDS =
     'APPLEPAY' => 'APPLEPAY',
     'AUTODETECT' => 'VISA MASTER AMEX JCB',
     'JCB' => 'JCB',
+    'CLICK_TO_PAY' => 'CLICK_TO_PAY VISA MASTER AMEX JCB'
 ];
 
 const PAYMENT_ACTIONS =  [
@@ -315,6 +316,31 @@ const CONFIG = [
             ],
             'HYPERPAY_METHOD_APPLEPAY_ENTITY_ID' => '',
             'HYPERPAY_METHOD_APPLEPAY_CURRENCY' =>  [
+                'type' => 'currency'
+            ],
+        ],
+        'CLICK_TO_PAY' => [
+            'HYPERPAY_METHOD_CLICK_TO_PAY_NAME' => 'CLICK_TO_PAY',
+            'HYPERPAY_METHOD_CLICK_TO_PAY_TITLE' => 'HyperPay Click to Pay',
+            'HYPERPAY_METHOD_CLICK_TO_PAY_ENABLED' => [
+                'type' => 'switch',
+                'label'=>'Enabled',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_CLICK_TO_PAY_ACTION' =>  [
+                'type' => 'select',
+                'size' => 0,
+                'label'=>'Action',
+                'options' => PAYMENT_ACTIONS,
+            ],
+            'HYPERPAY_METHOD_CLICK_TO_PAY_CONNECTOR' => [
+                'type' => 'select',
+                'size' => 0,
+                'label'=>'Connector',
+                'options' => PAYMENT_CONNECTORS,
+            ],
+            'HYPERPAY_METHOD_CLICK_TO_PAY_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_CLICK_TO_PAY_CURRENCY' =>  [
                 'type' => 'currency'
             ],
         ],

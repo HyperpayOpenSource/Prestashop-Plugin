@@ -9,7 +9,7 @@ class HPHelper
      * 
      * @return (bool) true|false.
      */
-    public function isThisEnglishText($text)
+    public static function isThisEnglishText($text)
     {
         return preg_match("/\p{Latin}+/u", $text);
     }
