@@ -5,7 +5,18 @@
 
 <section id="iframe" style="display: flex;align-items: center;">
 
+    {assign var="brandsList" value=$brands}
+    {assign var="shouldValidateMada" value=false}
+
+    {if strpos($brands, 'VISA') !== false || strpos($brands, 'MASTER') !== false}
+        {assign var="brandsList" value="`$brands` MADA"}
+        {assign var="shouldValidateMada" value=true}
+    {/if}
+
+
     <script>
+
+        let shouldValidateMada = {if $shouldValidateMada}true{else}false{/if};
         function findGetParameter(parameterName) {
             var result = null,
                 tmp = [];
@@ -38,7 +49,19 @@
         browser: {
             threeDChallengeWindow: 5
         },
+        onBlurCardNumber: function (isValid) {
+        let paymentBrand = this.$form.find('.wpwl-control-brand').val();
+        if (shouldValidateMada == 'yes' && paymentBrand == "MADA") {
+            setTimeout(function () {
+                $('.wpwl-hint-cardNumberError').remove();
+                $('.wpwl-control-cardNumber').removeClass('wpwl-has-error');
+                $('.wpwl-control-cardNumber').addClass('wpwl-has-error').after('<div class="wpwl-hint wpwl-hint-cardNumberError">mada card is not allowed, please choose mada debit card from the payment options</div>');
+                $('.wpwl-button-pay').prop('disabled', true);
+            }, 5);
+        }
+    },
         onReady: function() {
+            $('.wpwl-group.wpwl-group-brand').hide();
             if(paymentMethod === 'MADA') {
                 $('.wpwl-wrapper-cardNumber').each(function () {
                     displayName(this);
@@ -64,7 +87,9 @@
     </script>
     <script src="{$originUrl}paymentWidgets.js?checkoutId={$checkoutId}"></script>
 
-    <form action="{$src}" class="paymentWidgets" data-brands="{$brands}"></form>
+    
+
+    <form action="{$src}" class="paymentWidgets" data-brands="{$brandsList}"></form>
 
 
     <style>
