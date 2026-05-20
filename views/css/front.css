@@ -1,0 +1,8 @@
+/* Targets the specific payment option logo */
+.payment-option img[src*="hyperpay"] {
+    width: 40px;  /* Set your preferred width */
+    height: auto; /* Maintain aspect ratio */
+    vertical-align: middle;
+    margin-right: 10px; /* Space between logo and text */
+    margin-left: 10px; /* Space on the left side of the logo */
+}

@@ -2,7 +2,8 @@
     <form style="display:inline-block;border:1px solid blue;border-radius:5px;padding:5px;" method="post" action="{$smarty.server.REQUEST_URI|escape:'htmlall':'UTF-8'}">
         <input type="hidden" name="id_order" value="{$params.id_order|intval}"/>
     
-            <input type="number" step="0.001" name="refundAmount" />
+            <input type="number" step="0.01" min="0.01" max="{$refund_max_amount|floatval}" name="refundAmount" placeholder="{$refund_max_amount|floatval}" />
+            <span>{$refund_currency|escape:'htmlall':'UTF-8'}</span>
             <button type="submit" class="btn btn-default" name="submitHyperpayRefund"
                     onclick="if (!confirm('{l s='Are you sure?' mod='hyperpay'}'))return false;">
                 <i class="icon-undo"></i>

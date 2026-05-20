@@ -39,6 +39,7 @@ class HyperpayIframeModuleFrontController extends ModuleFrontController
 
         $testMode = Configuration::get("HYPERPAY_MODE");
 
+        $nonce = random_int(0, 99999);
         // check if test or live
         if ($testMode == "LIVE") {
             $url = Configuration::get("HYPERPAY_LIVE_URL");
@@ -46,15 +47,29 @@ class HyperpayIframeModuleFrontController extends ModuleFrontController
             $url = Configuration::get("HYPERPAY_TEST_URL");
         }
 
+        $cspMeta = '<meta http-equiv="Content-Security-Policy" content="' .
+            'style-src \'self\' ' . $url . ' \'unsafe-inline\'; ' .
+            'frame-src \'self\' ' . $url . '; ' .
+            'script-src \'self\' ' . $url . ' https://pay.google.com/gp/p/ui/pay \'nonce-' . $nonce . '\'; ' .
+            'connect-src \'self\' ' . $url . '; ' .
+            'img-src \'self\' ' . $url . ';">';
+
+        // Assign it to smarty so the hook can see it
+        $this->context->smarty->assign('hyperpay_csp_tag', $cspMeta);
+
         $this->context->smarty->assign([
             'src' => $this->context->link->getModuleLink($this->module->name, 'validation', ['method' => $paymentMethod], true),
             'checkoutId' => isset($responseData->id) ? $responseData->id : null,
+            'integrity' => isset($responseData->integrity) ? $responseData->integrity : null,
             'cardStyle' => $cardStyle,
             'cardCss' => $cardCss,
             'brands' => PAYMENT_BRANDS[$paymentMethod],
             'locale' => $this->context->language->iso_code,
             'originUrl' => $url,
-            'preview' => ''
+            'preview' => '',
+            'NONCE_ID' => $nonce,
+            'entityId' => Configuration::get("{$settingsKey}_ENTITY_ID"),
+            'googlePayMerchantId' => Configuration::get("{$settingsKey}_GOOGLE_PAY_MERCHANT_ID") ?? '',
         ]);
 
 
