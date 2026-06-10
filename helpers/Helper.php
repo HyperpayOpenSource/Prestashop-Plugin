@@ -11,7 +11,7 @@ class HPHelper
      */
     public static function isThisEnglishText($text)
     {
-        return preg_match("/\p{Latin}+/u", $text);
+        return preg_match('/^[^\\p{L}]*[A-Za-z][A-Za-z\\s\\d[:punct:]]*$/u', $text) === 1;
     }
 
     /**
@@ -21,7 +21,7 @@ class HPHelper
      * @param string $settingsKey
      * @param HyperpayPayment $payment
      *
-     * @return void
+     * @return string
      */
     public static function convertPrice($amount, $settingsKey, HyperpayPayment $payment = null)
     {

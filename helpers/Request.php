@@ -17,7 +17,7 @@ class Request
         } else {
             $url = Configuration::get("HYPERPAY_TEST_URL");
         }
-        
+
         $url = "{$url}checkouts/$id/payment?entityId=$entityID";
 
         $ch = curl_init();
@@ -29,17 +29,17 @@ class Request
                 "Authorization:Bearer $accessToken"
             ]);
         }
-        
+
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $testMode == "LIVE");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
+
         $responseData = curl_exec($ch);
         if (curl_errno($ch)) {
             $responseData = '"' . curl_error($ch) . '"';
         }
         curl_close($ch);
-        
+
         return $responseData;
     }
 
@@ -61,10 +61,10 @@ class Request
             $url = Configuration::get("HYPERPAY_LIVE_URL");
         } else {
             $url = Configuration::get("HYPERPAY_TEST_URL");
+            // round the amount because test environment doesn't handle fractions well for some reason
+            $convertedAmount = round($convertedAmount);
         }
-        
         $url = "{$url}checkouts";
-        
         $data = "entityId=$entityID" .
             "&amount=$convertedAmount" .
             "&currency=$currency" .
@@ -121,13 +121,13 @@ class Request
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $testMode == "LIVE");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
+
         $responseData = curl_exec($ch);
         if (curl_errno($ch)) {
             $responseData = '"' . curl_error($ch) . '"';
         }
         curl_close($ch);
-        
+
         return $responseData;
     }
 
@@ -137,14 +137,26 @@ class Request
     private static function getRequestAdditionalInfo($settingsKey)
     {
         $billingAddress = new Address(Context::getContext()->cart->id_address_invoice);
+        $context = Context::getContext();
+        $isoCode = $context->language->iso_code;
+
         $customer = Context::getContext()->customer;
 
         // Validation helper to ensure data exists and is clean
-        $getRequired = function ($value, $fieldName) {
+        $getRequired = function ($value, $fieldName) use ($isoCode) {
             $clean = trim(str_replace("&", "", $value));
+
             if (empty($clean)) {
-                throw new Exception(sprintf("Missing required billing field: %s", $fieldName));
+                throw new Exception(
+                    sprintf(
+                        $isoCode == 'ar'
+                            ? "الحقل مطلوب %s"
+                            : "Missing required billing field: %s",
+                        $fieldName
+                    )
+                );
             }
+
             return urlencode($clean);
         };
 
@@ -153,7 +165,7 @@ class Request
 
             // 1. Email Validation
             if (!isset($customer->email) || !Validate::isEmail($customer->email)) {
-                throw new Exception("A valid customer email is required.");
+                throw new Exception($isoCode  == 'ar' ? "البريد الإلكتروني مطلوب" : "A valid customer email is required.");
             }
             $data .= "&customer.email=" . urlencode($customer->email);
             $data .= "&customer.givenName=" . urlencode($customer->firstname);
@@ -164,14 +176,22 @@ class Request
             $data .= "&billing.city="    . $getRequired($billingAddress->city, 'City');
             $data .= "&billing.postcode=" . $getRequired($billingAddress->postcode, 'Postcode');
 
-            if(!$customer->firstname || !$customer->lastname) {
-                throw new Exception("Customer first name and last name are required.");
+            if (!$customer->firstname || !$customer->lastname) {
+                throw new Exception($isoCode  == 'ar' ? "الاسم الأول والأخير مطلوبان" : "Customer first name and last name are required.");
+            }
+
+            if (!(HPHelper::isThisEnglishText($customer->firstname))) {
+                throw new Exception($isoCode  == 'ar' ? "فقط الأحرف الإنجليزية مسموح بها في حقل الاسم الأول" : "only English characters are allowed in first name field.");
+            }
+
+            if (!(HPHelper::isThisEnglishText($customer->lastname))) {
+                throw new Exception($isoCode  == 'ar' ? "فقط الأحرف الإنجليزية مسموح بها في حقل الاسم الأخير" : "only English characters are allowed in last name field.");
             }
 
             // 3. Country Validation (ISO Alpha-2)
             $country = new Country($billingAddress->id_country);
             if (!$country->iso_code || strlen($country->iso_code) !== 2) {
-                throw new Exception("Billing country must be in ISO Alpha-2 format.");
+                throw new Exception($isoCode  == 'ar' ? "البلد يجب أن يكون في تنسيق ISO Alpha-2" : "Billing country must be in ISO Alpha-2 format.");
             }
             $data .= "&billing.country=" . strtoupper($country->iso_code);
 
@@ -185,7 +205,6 @@ class Request
             }
 
             return $data;
-
         } catch (Exception $e) {
             return ['error' => $e->getMessage()];
         }
@@ -230,7 +249,7 @@ class Request
         $accessToken = Configuration::get("HYPERPAY_ACCESS_TOKEN");
         if ($accessToken != '') {
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Authorization:Bearer $accessToken"
+                "Authorization: Bearer $accessToken"
             ]);
         }
 
@@ -238,13 +257,13 @@ class Request
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $testMode == "LIVE");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
+
         $responseData = curl_exec($ch);
         if (curl_errno($ch)) {
             $responseData = '"' . curl_error($ch) . '"';
         }
         curl_close($ch);
-        
+
         return $responseData;
     }
 }

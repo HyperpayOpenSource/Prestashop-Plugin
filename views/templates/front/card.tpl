@@ -41,9 +41,19 @@
         function displayName(element) {
             $('.wpwl-brand-card').each(function () {
                 $(element).append(this);
-                console.log("displayName");
             });
         }
+
+        function validateHolder(e){
+            var holder = ($('.wpwl-control-cardHolder').val() || '').trim();
+            if (holder.trim().length < 2 || /\p{Extended_Pictographic}/u.test(holder) ){
+                $('.wpwl-control-cardHolder').addClass('wpwl-has-error')
+                .after('<div class="wpwl-hint wpwl-hint-cardHolderError">Invalid card holder</div>');
+                return false;
+            }
+            return true;
+        }
+
 
         var wpwlOptions = {
             style: "{$cardStyle}",
@@ -62,7 +72,7 @@
             onBlurCardNumber: function (isValid) {
                 let paymentBrand = this.$form.find('.wpwl-control-brand').val();
 
-                if (shouldValidateMada == 'yes' && paymentBrand == "MADA") {
+                if (shouldValidateMada  && paymentBrand == "MADA") {
                     setTimeout(function () {
                         $('.wpwl-hint-cardNumberError').remove();
                         $('.wpwl-control-cardNumber').removeClass('wpwl-has-error');
@@ -75,8 +85,15 @@
                     }, 5);
                 }
             },
+            onBeforeSubmitCard: function(e){
+                return validateHolder(e);
+            },
 
             onReady: function () {
+                $('.wpwl-form-card').find('.wpwl-button-pay').on('click', function(e){
+                    validateHolder(e);
+                });
+
                 $('.wpwl-group.wpwl-group-brand').hide();
 
                 if (paymentMethod === 'MADA') {
