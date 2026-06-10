@@ -4,19 +4,20 @@ include_once(_PS_MODULE_DIR_ . 'hyperpay/classes/HyperpayCard.php');
 
 class Request
 {
-
+    /**
+     * Get Payment Status from Hyperpay
+     */
     public static function getPaymentStatus($settingsKey, $id)
     {
         $entityID = Configuration::get("{$settingsKey}_ENTITY_ID");
-
         $testMode = Configuration::get("HYPERPAY_MODE");
 
-        // check if test or live
         if ($testMode == "LIVE") {
             $url = Configuration::get("HYPERPAY_LIVE_URL");
         } else {
             $url = Configuration::get("HYPERPAY_TEST_URL");
         }
+
         $url = "{$url}checkouts/$id/payment?entityId=$entityID";
 
         $ch = curl_init();
@@ -28,17 +29,23 @@ class Request
                 "Authorization:Bearer $accessToken"
             ]);
         }
+
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $testMode == "LIVE"); // this should be set to true in production
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $testMode == "LIVE");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
         $responseData = curl_exec($ch);
         if (curl_errno($ch)) {
             $responseData = '"' . curl_error($ch) . '"';
         }
         curl_close($ch);
+
         return $responseData;
     }
 
+    /**
+     * Prepare Checkout and validate user data
+     */
     public static function prepareCheckout($settingsKey, $paymentMethod)
     {
         $merchantTransactionId = Context::getContext()->cart->id . '_' . time();
@@ -50,7 +57,6 @@ class Request
 
         $testMode = Configuration::get("HYPERPAY_MODE");
 
-        // check if test or live
         if ($testMode == "LIVE") {
             $url = Configuration::get("HYPERPAY_LIVE_URL");
         } else {
@@ -69,27 +75,37 @@ class Request
         $data .= '&customParameters[teller_id]=1';
         $data .= '&customParameters[device_id]=1';
         $data .= '&customParameters[bill_number]=' . $merchantTransactionId;
-        $data .= '$customParameters[plugin]=prestashop';
+        $data .= '&customParameters[plugin]=prestashop'; // Fixed typo here
+        $data .= '&integrity=true'; // Fixed typo here
 
         if ($testMode != "LIVE") {
-            $data .= "&testMode=$testMode";
+            $data .= "&testMode=EXTERNAL";
+            $data .= "&customParameters[3DS2_enrolled]=true";
         }
 
-
+        // Handle saved cards
         $customerCards = HyperpayCard::getCustomerCards(Context::getContext()->customer->id, $paymentMethod) ?: [];
 
         if (!empty($customerCards)) {
-            $customerCards = array_map(function ($card, $index) {
+            $customerCardsStr = array_map(function ($card, $index) {
                 return "registrations[$index].id={$card['registration_id']}";
             }, $customerCards, array_keys($customerCards));
 
-
-            $customerCards = implode("&", $customerCards);
-
-            $data .= "&" . $customerCards;
+            $data .= "&" . implode("&", $customerCardsStr);
         }
 
-        $data .= Request::getRequestAdditionalInfo($settingsKey);
+        // Get and Validate Additional Info
+        $additionalInfo = Request::getRequestAdditionalInfo($settingsKey);
+
+        if (is_array($additionalInfo) && isset($additionalInfo['error'])) {
+            header('Content-Type: application/json');
+            die(json_encode([
+                'success' => false,
+                'message' => $additionalInfo['error']
+            ]));
+        }
+
+        $data .= $additionalInfo;
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -103,119 +119,96 @@ class Request
 
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $testMode == "LIVE"); // this should be set to true in production
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $testMode == "LIVE");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
         $responseData = curl_exec($ch);
         if (curl_errno($ch)) {
             $responseData = '"' . curl_error($ch) . '"';
         }
         curl_close($ch);
+
         return $responseData;
     }
 
+    /**
+     * Validates and cleans billing/customer info
+     */
     private static function getRequestAdditionalInfo($settingsKey)
     {
         $billingAddress = new Address(Context::getContext()->cart->id_address_invoice);
-        $shippingAddress = new Address(Context::getContext()->cart->id_address_delivery);
+        $context = Context::getContext();
+        $isoCode = $context->language->iso_code;
+
         $customer = Context::getContext()->customer;
 
-        $connector = Configuration::get("{$settingsKey}_CONNECTOR");
+        // Validation helper to ensure data exists and is clean
+        $getRequired = function ($value, $fieldName) use ($isoCode) {
+            $clean = trim(str_replace("&", "", $value));
 
-        $data = '';
+            if (empty($clean)) {
+                throw new Exception(
+                    sprintf(
+                        $isoCode == 'ar'
+                            ? "الحقل مطلوب %s"
+                            : "Missing required billing field: %s",
+                        $fieldName
+                    )
+                );
+            }
 
-        $firstNameShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->firstname));
-        $surNameShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->lastname));
-        $countryShipping = (new Country($shippingAddress->id_country))->iso_code;
-        $telShipping = preg_replace('/\s/', '', $shippingAddress->phone ?: $shippingAddress->phone_mobile);
-        $postCodeShipping = preg_replace('/\s/', '', $shippingAddress->postcode);
-        $streetShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->address1));
-        $cityShipping = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->city));
-        $stateBilling = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->city));
+            return urlencode($clean);
+        };
 
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($stateBilling) == false)) {
-            $data .= "&billing.state=" . $stateBilling;
+        try {
+            $data = "";
+
+            // 1. Email Validation
+            if (!isset($customer->email) || !Validate::isEmail($customer->email)) {
+                throw new Exception($isoCode  == 'ar' ? "البريد الإلكتروني مطلوب" : "A valid customer email is required.");
+            }
+            $data .= "&customer.email=" . urlencode($customer->email);
+            $data .= "&customer.givenName=" . urlencode($customer->firstname);
+            $data .= "&customer.surname=" . urlencode($customer->lastname);
+
+            // 2. Billing Address Validation
+            $data .= "&billing.street1=" . $getRequired($billingAddress->address1, 'Street');
+            $data .= "&billing.city="    . $getRequired($billingAddress->city, 'City');
+            $data .= "&billing.postcode=" . $getRequired($billingAddress->postcode, 'Postcode');
+
+            if (!$customer->firstname || !$customer->lastname) {
+                throw new Exception($isoCode  == 'ar' ? "الاسم الأول والأخير مطلوبان" : "Customer first name and last name are required.");
+            }
+
+            if (!(HPHelper::isThisEnglishText($customer->firstname))) {
+                throw new Exception($isoCode  == 'ar' ? "فقط الأحرف الإنجليزية مسموح بها في حقل الاسم الأول" : "only English characters are allowed in first name field.");
+            }
+
+            if (!(HPHelper::isThisEnglishText($customer->lastname))) {
+                throw new Exception($isoCode  == 'ar' ? "فقط الأحرف الإنجليزية مسموح بها في حقل الاسم الأخير" : "only English characters are allowed in last name field.");
+            }
+
+            // 3. Country Validation (ISO Alpha-2)
+            $country = new Country($billingAddress->id_country);
+            if (!$country->iso_code || strlen($country->iso_code) !== 2) {
+                throw new Exception($isoCode  == 'ar' ? "البلد يجب أن يكون في تنسيق ISO Alpha-2" : "Billing country must be in ISO Alpha-2 format.");
+            }
+            $data .= "&billing.country=" . strtoupper($country->iso_code);
+
+            // 4. State Validation
+            if ($billingAddress->id_state) {
+                $state = new State($billingAddress->id_state);
+                $data .= "&billing.state=" . urlencode($state->name);
+            } else {
+                // Hyperpay often requires a state value; fallback to city name if state is not set
+                $data .= "&billing.state=" . urlencode($billingAddress->city);
+            }
+
+            return $data;
+        } catch (Exception $e) {
+            return ['error' => $e->getMessage()];
         }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($cityShipping) == false)) {
-            $data .= "&shipping.city=" . $cityShipping;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($countryShipping) == false)) {
-            $data .= "&shipping.country=" . $countryShipping;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($postCodeShipping) == false)) {
-            $data .= "&shipping.postcode=" . $postCodeShipping;
-        }
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($firstNameShipping) == false)) {
-            $data .= "&shipping.customer.givenName=" . $firstNameShipping;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($surNameShipping) == false)) {
-            $data .= "&shipping.customer.surname=" . $surNameShipping;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($telShipping) == false)) {
-            $data .= "&shipping.customer.phone=" . $telShipping;
-        }
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($streetShipping) == false)) {
-            $data .= "&shipping.street1=" . $streetShipping;
-            $data .= "&shipping.street2=" . $streetShipping;
-        }
-
-
-        $firstNameBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->firstname));
-        $surNameBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->lastname));
-        $countryBilling = (new Country($billingAddress->id_country))->iso_code;
-        $telBilling = preg_replace('/\s/', '', $billingAddress->phone ?: $billingAddress->phone_mobile);
-        $postCodeBilling = preg_replace('/\s/', '', $billingAddress->postcode);
-        $streetBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->address1));
-        $cityBilling = preg_replace('/\s/', '', str_replace("&", "", $billingAddress->city));
-        $stateBilling = preg_replace('/\s/', '', str_replace("&", "", $shippingAddress->city));
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($stateBilling) == false)) {
-            $data .= "&billing.state=" . $stateBilling;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($cityBilling) == false)) {
-            $data .= "&billing.city=" . $cityBilling;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($countryBilling) == false)) {
-            $data .= "&billing.country=" . $countryBilling;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($firstNameBilling) == false)) {
-            $data .= "&customer.givenName=" . $firstNameBilling;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($telBilling) == false)) {
-            $data .= "&customer.phone=" . $telBilling;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($postCodeBilling) == false)) {
-            $data .= "&billing.postcode=" . $postCodeBilling;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($surNameBilling) == false)) {
-            $data .= "&customer.surname=" . $surNameBilling;
-        }
-
-        if (!($connector == 'migs' && HPHelper::isThisEnglishText($streetBilling) == false)) {
-            $data .= "&billing.street1=" . $streetShipping;
-            $data .= "&billing.street2=" . $streetShipping;
-        }
-
-        if (isset($customer)) {
-            $customerEmail = preg_replace('/\s/', '', str_replace("&", "", $customer->email));
-            $data .= "&customer.email=" . $customerEmail;
-        } else {
-            $data .= "customer.email=''";
-        }
-
-        return $data;
     }
-
 
     public static function sendRefundRequest(HyperpayPayment $payment, $amount)
     {
@@ -230,20 +223,16 @@ class Request
     private static function sendBackOfficeRequest($operation, HyperpayPayment $payment, $amount)
     {
         $settingsKey = "HYPERPAY_METHOD_{$payment->payment_method}";
-
         $currency = Configuration::get("{$settingsKey}_CURRENCY");
         $entityID = Configuration::get("{$settingsKey}_ENTITY_ID");
-
         $testMode = Configuration::get("HYPERPAY_MODE");
 
-        // check if test or live
         if ($testMode == "LIVE") {
             $url = Configuration::get("HYPERPAY_LIVE_URL");
         } else {
             $url = Configuration::get("HYPERPAY_TEST_URL");
-            // round the amount because test environment doesn't handle fractions well for some reason
-            $amount = round($amount);
         }
+
         $url = "{$url}payments/{$payment->payment_id}";
         $data = "entityId=$entityID" .
             "&amount=$amount" .
@@ -260,19 +249,21 @@ class Request
         $accessToken = Configuration::get("HYPERPAY_ACCESS_TOKEN");
         if ($accessToken != '') {
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Authorization:Bearer $accessToken"
+                "Authorization: Bearer $accessToken"
             ]);
         }
 
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $testMode == "LIVE"); // this should be set to true in production
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $testMode == "LIVE");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
         $responseData = curl_exec($ch);
         if (curl_errno($ch)) {
             $responseData = '"' . curl_error($ch) . '"';
         }
         curl_close($ch);
+
         return $responseData;
     }
 }

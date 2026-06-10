@@ -46,10 +46,6 @@ class HyperpayValidationModuleFrontController extends ModuleFrontController
 
         $currency = $this->context->currency;
 
-        $total = (float) $cart->getOrderTotal(true, Cart::BOTH);
-
-        // after all checks are successfull we send the get payment status
-        // also all these checks need to be done before  creating the iframe
         $paymentStatus =  json_decode(Request::getPaymentStatus($settingsKey, Tools::getValue('id')), true);
 
         $status = "";
@@ -81,6 +77,14 @@ class HyperpayValidationModuleFrontController extends ModuleFrontController
           
         }
 
+        // Use the amount from Hyperpay's response as the authoritative amount (PS docs: do not use Cart->getOrderTotal())
+        $hyperpayAmount = isset($paymentStatus['amount']) ? (float) $paymentStatus['amount'] : 0;
+        $hyperpayResponseCurrency = isset($paymentStatus['currency']) ? $paymentStatus['currency'] : Configuration::get("{$settingsKey}_CURRENCY");
+
+        // Convert Hyperpay's returned amount back to the cart currency for validateOrder()
+        $hyperpayConfigCurrency = new Currency(Currency::getIdByIsoCode($hyperpayResponseCurrency));
+        $total = (float) Tools::convertPriceFull($hyperpayAmount, $hyperpayConfigCurrency, $currency);
+
         if ($status == 'success') {
             if (
                 isset($paymentStatus) &&
@@ -101,7 +105,7 @@ class HyperpayValidationModuleFrontController extends ModuleFrontController
                 $newCard->save();
             }
 
-            $this->module->validateOrder($cart->id,  Configuration::get('HYPERPAY_DEFAULT_STATUS'), $total, Configuration::get("{$settingsKey}_TITLE"), NULL, [], (int) $currency->id, false, $customer->secure_key);
+            $this->module->validateOrder($cart->id, Configuration::get('HYPERPAY_DEFAULT_STATUS'), $total, Configuration::get("{$settingsKey}_TITLE"), NULL, [], (int) $currency->id, false, $customer->secure_key);
         }
 
 
@@ -110,12 +114,12 @@ class HyperpayValidationModuleFrontController extends ModuleFrontController
         $payment->id_cart = $cart->id;
         $payment->payment_id = isset($paymentStatus['id']) ? $paymentStatus['id'] : '';
         $payment->payment_type = isset($paymentStatus['paymentType']) ? $paymentStatus['paymentType'] : '';
-        $payment->amount = $total;
-        $payment->currency = $currency->iso_code;
+        $payment->amount = $hyperpayAmount;
+        $payment->currency = $hyperpayResponseCurrency;
         $payment->payment_method = $paymentMethod;
-        $payment->total_paid = (float) $total;
+        $payment->total_paid = $hyperpayAmount;
         $payment->payment_status = $status;
-        $payment->total_prestashop = (float) $total;
+        $payment->total_prestashop = $total;
         $payment->save();
 
         // in case everything is good and successfull do the following two lines

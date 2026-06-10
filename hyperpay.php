@@ -196,7 +196,7 @@ class Hyperpay extends PaymentModule
                         if (is_string($paymentConfigValue)) {
                             $field = [
                                 'type' => 'text',
-                                'label' => Tools::ucfirst(Tools::strtolower(explode('_', $paymentConfigKey)[3])),
+                                'label' => Tools::ucfirst(Tools::strtolower(str_replace("_", " ", str_replace("HYPERPAY_METHOD_", "", $paymentConfigKey)))),
                                 'name' => $paymentConfigKey,
                                 'size' => 20,
                                 'required' => false,
@@ -469,6 +469,8 @@ class Hyperpay extends PaymentModule
                 'params' => $params,
                 'errors_refund' => $errors_refund,
                 'message' => $orderMessage->message,
+                'refund_currency' => $hyperpay_payment->currency,
+                'refund_max_amount' => $hyperpay_payment->total_paid,
             ]
         );
 
@@ -509,10 +511,11 @@ class Hyperpay extends PaymentModule
         foreach (CONFIG['payment_methods'] as $payment => $paymentConfig) {
             $settingsKey = "HYPERPAY_METHOD_" . $payment;
 
+
             if (Configuration::get("{$settingsKey}_ENABLED")) {
                 $cardPaymentOption = [];
                 $cardPaymentOption['title'] = $this->l(Configuration::get("{$settingsKey}_TITLE"));
-                $cardPaymentOption['logo'] = _PS_BASE_URL_ . _MODULE_DIR_ . "hyperpay/views/imgs/payments_logos/smaller-$payment.svg";
+                $cardPaymentOption['logo'] = _PS_BASE_URL_ . _MODULE_DIR_ . "hyperpay/views/imgs/payments_logos/$payment.svg";
                 $cardPaymentOption['link'] =
                     $this->context->link->getModuleLink(
                         $this->name,
@@ -559,20 +562,20 @@ class Hyperpay extends PaymentModule
                             true
                         )
                     )
-                    ->setModuleName($this->name);
+                    ->setModuleName($this->name)
+                    ->setLogo(Media::getMediaPath(_PS_BASE_URL_ . _MODULE_DIR_ . "hyperpay/views/imgs/payments_logos/$payment.svg"));
 
-                    if ($payment == 'MADA') {
-                        // insert mada at the top of array and add it's logo
-                        array_unshift($paymentOptions, $cardPaymentOption);
-                        $cardPaymentOption->setLogo(Media::getMediaPath(_PS_BASE_URL_ . _MODULE_DIR_ . "hyperpay/views/imgs/payments_logos/smaller-$payment.svg"));
-                        if ($this->context->language->iso_code == 'ar') {
-                          $cardPaymentOption->setCallToActionText('بطاقة مدى البنكية');
-                        }else{
-                          $cardPaymentOption->setCallToActionText('mada debit card');
-                        }
+                if ($payment == 'MADA') {
+                    // insert mada at the top of array and add it's logo
+                    array_unshift($paymentOptions, $cardPaymentOption);
+                    if ($this->context->language->iso_code == 'ar') {
+                        $cardPaymentOption->setCallToActionText('بطاقة مدى البنكية');
                     } else {
-                        $paymentOptions[] = $cardPaymentOption;
+                        $cardPaymentOption->setCallToActionText('mada debit card');
                     }
+                } else {
+                    $paymentOptions[] = $cardPaymentOption;
+                }
             }
         }
 
@@ -836,5 +839,30 @@ class Hyperpay extends PaymentModule
         }
 
         return true;
+    }
+
+    public function hookDisplayHeader($params)
+    {
+        // Only inject if we are on the Hyperpay Iframe page
+        if ($this->context->controller instanceof HyperpayIframeModuleFrontController) {
+            return $this->context->smarty->getTemplateVars('hyperpay_csp_tag');
+        }
+    }
+
+    public function hookHeader()
+    {
+        $this->context->controller->registerStylesheet(
+            'modules-hyperpay-front', // Unique ID
+            'modules/' . $this->name . '/views/css/front.css', // Path to file
+            [
+                'media' => 'all',
+                'priority' => 150,
+            ]
+        );
+    }
+
+    public function hookPaymentReturn($params)
+    {
+        return $this->fetch('module:hyperpay/views/templates/hook/payment_return.tpl');
     }
 }
