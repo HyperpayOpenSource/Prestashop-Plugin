@@ -344,7 +344,7 @@ const CONFIG = [
             'HYPERPAY_METHOD_JAYWAN_CURRENCY' =>  [
                 'type' => 'currency'
             ],
-        ],
+        ]
     ]
 
 ];
