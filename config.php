@@ -13,6 +13,7 @@ const PAYMENT_BRANDS =
     'CLICK_TO_PAY' => 'CLICK_TO_PAY VISA MASTER AMEX JCB',
     'VALU' => 'VALU',
     'GOOGLEPAY' => 'GOOGLEPAY',
+    'JAYWAN' => 'JAYWAN'
 ];
 
 const PAYMENT_ACTIONS =  [
@@ -325,7 +326,25 @@ const CONFIG = [
                 'type' => 'currency'
             ],
             'HYPERPAY_METHOD_GOOGLEPAY_MERCHANT_ID' => '',
-        ]
+        ],
+        'JAYWAN' => [
+            'HYPERPAY_METHOD_JAYWAN_NAME' => 'JAYWAN',
+            'HYPERPAY_METHOD_JAYWAN_TITLE' => 'HyperPay JAYWAN',
+            'HYPERPAY_METHOD_JAYWAN_ENABLED' => [
+                'type' => 'switch',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_JAYWAN_ACTION' =>  [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_ACTIONS,
+            ],
+
+            'HYPERPAY_METHOD_JAYWAN_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_JAYWAN_CURRENCY' =>  [
+                'type' => 'currency'
+            ],
+        ],
     ]
 
 ];
