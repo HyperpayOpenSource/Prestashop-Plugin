@@ -46,7 +46,7 @@
 
         function validateHolder(e){
             var holder = ($('.wpwl-control-cardHolder').val() || '').trim();
-            if (holder.trim().length < 2 || /\p{Extended_Pictographic}/u.test(holder) ){
+            if (holder.trim().length < 2 || /\p{ldelim}Extended_Pictographic{rdelim}/u.test(holder) ){
                 $('.wpwl-control-cardHolder').addClass('wpwl-has-error')
                 .after('<div class="wpwl-hint wpwl-hint-cardHolderError">Invalid card holder</div>');
                 return false;
