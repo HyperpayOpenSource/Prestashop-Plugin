@@ -13,6 +13,7 @@ const PAYMENT_BRANDS =
     'CLICK_TO_PAY' => 'CLICK_TO_PAY VISA MASTER AMEX JCB',
     'VALU' => 'VALU',
     'GOOGLEPAY' => 'GOOGLEPAY',
+    'AANI'=>'AANI'
 ];
 
 const PAYMENT_ACTIONS =  [
@@ -325,7 +326,25 @@ const CONFIG = [
                 'type' => 'currency'
             ],
             'HYPERPAY_METHOD_GOOGLEPAY_MERCHANT_ID' => '',
-        ]
+        ],
+        'AANI' => [
+            'HYPERPAY_METHOD_AANI_NAME' => 'STCPay',
+            'HYPERPAY_METHOD_AANI_TITLE' => 'HyperPay STCPay',
+            'HYPERPAY_METHOD_AANI_ENABLED' => [
+                'type' => 'switch',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_AANI_ACTION' =>  [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_ACTIONS,
+            ],
+
+            'HYPERPAY_METHOD_AANI_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_AANI_CURRENCY' =>  [
+                'type' => 'currency'
+            ],
+        ],
     ]
 
 ];
