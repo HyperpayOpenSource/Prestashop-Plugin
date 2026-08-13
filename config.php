@@ -13,6 +13,8 @@ const PAYMENT_BRANDS =
     'CLICK_TO_PAY' => 'CLICK_TO_PAY VISA MASTER AMEX JCB',
     'VALU' => 'VALU',
     'GOOGLEPAY' => 'GOOGLEPAY',
+    'JAYWAN' => 'JAYWAN',
+    'AANI' => 'AANI'
 ];
 
 const PAYMENT_ACTIONS =  [
@@ -275,13 +277,13 @@ const CONFIG = [
             'HYPERPAY_METHOD_CLICK_TO_PAY_TITLE' => 'HyperPay Click to Pay',
             'HYPERPAY_METHOD_CLICK_TO_PAY_ENABLED' => [
                 'type' => 'switch',
-                'label'=>'Enabled',
+                'label' => 'Enabled',
                 'values' => YES_NO_OPTIONS,
             ],
             'HYPERPAY_METHOD_CLICK_TO_PAY_ACTION' =>  [
                 'type' => 'select',
                 'size' => 0,
-                'label'=>'Action',
+                'label' => 'Action',
                 'options' => PAYMENT_ACTIONS,
             ],
 
@@ -325,7 +327,42 @@ const CONFIG = [
                 'type' => 'currency'
             ],
             'HYPERPAY_METHOD_GOOGLEPAY_MERCHANT_ID' => '',
-        ]
+        ],
+        'JAYWAN' => [
+            'HYPERPAY_METHOD_JAYWAN_NAME' => 'JAYWAN',
+            'HYPERPAY_METHOD_JAYWAN_TITLE' => 'HyperPay JAYWAN',
+            'HYPERPAY_METHOD_JAYWAN_ENABLED' => [
+                'type' => 'switch',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_JAYWAN_ACTION' =>  [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_ACTIONS,
+            ],
+            'HYPERPAY_METHOD_JAYWAN_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_JAYWAN_CURRENCY' =>  [
+                'type' => 'currency'
+            ]
+        ],
+        'AANI' => [
+            'HYPERPAY_METHOD_AANI_NAME' => 'AANI',
+            'HYPERPAY_METHOD_AANI_TITLE' => 'HyperPay AANI',
+            'HYPERPAY_METHOD_AANI_ENABLED' => [
+                'type' => 'switch',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_AANI_ACTION' =>  [
+                'type' => 'select',
+                'size' => 0,
+                'options' => PAYMENT_ACTIONS
+            ],
+            'HYPERPAY_METHOD_AANI_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_AANI_CURRENCY' =>  [
+                'type' => 'currency'
+            ],
+        ],
     ]
+
 
 ];

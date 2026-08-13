@@ -65,6 +65,7 @@ class Request
             $convertedAmount = round($convertedAmount);
         }
         $url = "{$url}checkouts";
+        
         $data = "entityId=$entityID" .
             "&amount=$convertedAmount" .
             "&currency=$currency" .
@@ -77,7 +78,10 @@ class Request
         $data .= '&customParameters[bill_number]=' . $merchantTransactionId;
         $data .= '&customParameters[plugin]=prestashop'; // Fixed typo here
         $data .= '&integrity=true'; // Fixed typo here
-
+        if($paymentMethod === 'AANI'){
+            $billingAddress = new Address(Context::getContext()->cart->id_address_invoice);
+            $data .="&customer.mobile=" . urlencode($billingAddress->phone);      
+        }
         if ($testMode != "LIVE") {
             $data .= "&testMode=EXTERNAL";
             $data .= "&customParameters[3DS2_enrolled]=true";
