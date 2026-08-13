@@ -107,10 +107,12 @@
                     '<div class="customInput">' +
                     '<input type="checkbox" name="createRegistration" value="true" />' +
                     '</div>';
-
-                $('form.wpwl-form-card')
+                let paymentBrand = $('.wpwl-control-brand').val();
+                if(['VISA' , 'MASTER' , 'MADA'].includes(paymentBrand)){
+                    $('form.wpwl-form-card')
                     .find('.wpwl-button')
                     .before(createRegistrationHtml);
+                }
 
                 $('.wpwl-control-brand').hide();
                 $('.wpwl-label-brand').hide();
