@@ -14,8 +14,14 @@ const PAYMENT_BRANDS =
     'VALU' => 'VALU',
     'GOOGLEPAY' => 'GOOGLEPAY',
     'JAYWAN' => 'JAYWAN',
-    'AANI' => 'AANI'
+    'AANI' => 'AANI',
+    'TABBY' => 'TABBY',
+    'CLIQ' => 'CLIQ'
 ];
+
+const SERVER_TO_SERVER_BRANDS = ['TABBY', 'CLIQ'];
+
+const S2S_PENDING_PATTERN = '/^(000\.200|800\.400\.5|100\.400\.500)/';
 
 const PAYMENT_ACTIONS =  [
     'id' => 'value', // key that have the value in query array
@@ -359,6 +365,30 @@ const CONFIG = [
             ],
             'HYPERPAY_METHOD_AANI_ENTITY_ID' => '',
             'HYPERPAY_METHOD_AANI_CURRENCY' =>  [
+                'type' => 'currency'
+            ],
+        ],
+        'TABBY' => [
+            'HYPERPAY_METHOD_TABBY_NAME' => 'Tabby',
+            'HYPERPAY_METHOD_TABBY_TITLE' => 'HyperPay Tabby',
+            'HYPERPAY_METHOD_TABBY_ENABLED' => [
+                'type' => 'switch',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_TABBY_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_TABBY_CURRENCY' =>  [
+                'type' => 'currency'
+            ],
+        ],
+        'CLIQ' => [
+            'HYPERPAY_METHOD_CLIQ_NAME' => 'CliQ',
+            'HYPERPAY_METHOD_CLIQ_TITLE' => 'HyperPay CliQ',
+            'HYPERPAY_METHOD_CLIQ_ENABLED' => [
+                'type' => 'switch',
+                'values' => YES_NO_OPTIONS,
+            ],
+            'HYPERPAY_METHOD_CLIQ_ENTITY_ID' => '',
+            'HYPERPAY_METHOD_CLIQ_CURRENCY' =>  [
                 'type' => 'currency'
             ],
         ],
