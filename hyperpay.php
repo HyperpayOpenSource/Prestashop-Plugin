@@ -19,7 +19,7 @@ class Hyperpay extends PaymentModule
     {
         $this->name = 'hyperpay';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.1';
+        $this->version = '2.1.0';
         $this->author = 'Hyperpay';
         $this->need_instance = 0;
 
@@ -519,7 +519,7 @@ class Hyperpay extends PaymentModule
                 $cardPaymentOption['link'] =
                     $this->context->link->getModuleLink(
                         $this->name,
-                        'iframe',
+                        $this->paymentController($payment),
                         [
                             'method' => $payment
                         ],
@@ -535,6 +535,18 @@ class Hyperpay extends PaymentModule
         }
 
         return $paymentOptions;
+    }
+
+    /**
+     * Front controller that starts the payment, server to server brands skip the COPYandPAY widget
+     *
+     * @param string $payment
+     *
+     * @return string
+     */
+    private function paymentController($payment)
+    {
+        return in_array($payment, SERVER_TO_SERVER_BRANDS, true) ? 'servertoserver' : 'iframe';
     }
 
     /**
@@ -555,7 +567,7 @@ class Hyperpay extends PaymentModule
                     ->setAction(
                         $this->context->link->getModuleLink(
                             $this->name,
-                            'iframe',
+                            $this->paymentController($payment),
                             [
                                 'method' => $payment
                             ],
@@ -615,7 +627,49 @@ class Hyperpay extends PaymentModule
         if (!$this->prepareConfig()) {
             return false;
         }
+
+        if (!$this->installPendingOrderState()) {
+            return false;
+        }
         return true;
+    }
+
+    /**
+     * Create the order state used while the gateway has not confirmed a server to server payment yet
+     *
+     * @return boolean
+     */
+    public function installPendingOrderState()
+    {
+        $idOrderState = (int) Configuration::get('HYPERPAY_OS_AWAITING');
+        if ($idOrderState) {
+            $orderState = new OrderState($idOrderState);
+            if (Validate::isLoadedObject($orderState) && !$orderState->deleted) {
+                return true;
+            }
+        }
+
+        $orderState = new OrderState();
+        $orderState->name = [];
+        foreach (Language::getLanguages(false) as $language) {
+            $orderState->name[(int) $language['id_lang']] = 'Awaiting HyperPay payment confirmation';
+        }
+        $orderState->send_email = 0;
+        $orderState->module_name = $this->name;
+        $orderState->color = '#4169E1';
+        $orderState->unremovable = 1;
+        $orderState->hidden = 0;
+        $orderState->logable = 0;
+        $orderState->invoice = 0;
+        $orderState->delivery = 0;
+        $orderState->shipped = 0;
+        $orderState->paid = 0;
+
+        if (!$orderState->add()) {
+            return false;
+        }
+
+        return Configuration::updateValue('HYPERPAY_OS_AWAITING', (int) $orderState->id);
     }
 
     /**
@@ -642,7 +696,7 @@ class Hyperpay extends PaymentModule
                 foreach ($value as $payment => $paymentConfig) {
                     foreach ($paymentConfig as $paymentConfigKey => $paymentConfigValue) {
                         if (is_array($paymentConfigValue)) {
-                            $defaultValue = isset($value['value']) ? $value['value'] : '';
+                            $defaultValue = isset($paymentConfigValue['value']) ? $paymentConfigValue['value'] : '';
                         } else {
                             $defaultValue = $paymentConfigValue;
                         }
@@ -863,6 +917,22 @@ class Hyperpay extends PaymentModule
 
     public function hookPaymentReturn($params)
     {
-        return $this->fetch('module:hyperpay/views/templates/hook/payment_return.tpl');
+        if (!$this->active) {
+            return;
+        }
+
+        // PrestaShop 1.7 passes the order as "order", 1.6 as "objOrder"
+        $order = isset($params['order']) ? $params['order'] : (isset($params['objOrder']) ? $params['objOrder'] : null);
+
+        $this->context->smarty->assign([
+            'hyperpay_pending' => Validate::isLoadedObject($order)
+                && (int) $order->current_state === (int) Configuration::get('HYPERPAY_OS_AWAITING'),
+        ]);
+
+        if (version_compare(_PS_VERSION_, '1.7', '>=')) {
+            return $this->fetch('module:hyperpay/views/templates/hook/payment_return.tpl');
+        }
+
+        return $this->display(__FILE__, 'payment_return.tpl');
     }
 }

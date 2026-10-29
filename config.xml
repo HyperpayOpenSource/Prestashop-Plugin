@@ -2,7 +2,7 @@
 <module>
     <name>hyperpay</name>
     <displayName><![CDATA[Hyperpay payment gateway]]></displayName>
-    <version><![CDATA[0.0.1]]></version>
+    <version><![CDATA[2.1.0]]></version>
     <description><![CDATA[Use Hyperpay&#039;s payment gateway to accept credit cards and depit cards]]></description>
     <author><![CDATA[Hyperpay]]></author>
     <tab><![CDATA[payments_gateways]]></tab>
